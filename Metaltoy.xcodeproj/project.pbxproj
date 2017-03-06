@@ -7,21 +7,27 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		839CA1511E657BBF008EF073 /* PreviewViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 839CA1501E657BBF008EF073 /* PreviewViewController.swift */; };
 		83AD20D71E64D7D30004D401 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83AD20D61E64D7D30004D401 /* AppDelegate.swift */; };
-		83AD20D91E64D7D30004D401 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83AD20D81E64D7D30004D401 /* ViewController.swift */; };
+		83AD20D91E64D7D30004D401 /* EditorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83AD20D81E64D7D30004D401 /* EditorViewController.swift */; };
 		83AD20DB1E64D7D30004D401 /* Document.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83AD20DA1E64D7D30004D401 /* Document.swift */; };
 		83AD20DD1E64D7D30004D401 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 83AD20DC1E64D7D30004D401 /* Assets.xcassets */; };
 		83AD20E01E64D7D30004D401 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 83AD20DE1E64D7D30004D401 /* Main.storyboard */; };
+		83AD20E81E64D9760004D401 /* RulerWithLineNumbers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83AD20E71E64D9760004D401 /* RulerWithLineNumbers.swift */; };
+		83AD20EA1E64DBF10004D401 /* MetalGlobals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83AD20E91E64DBF10004D401 /* MetalGlobals.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		839CA1501E657BBF008EF073 /* PreviewViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PreviewViewController.swift; sourceTree = "<group>"; };
 		83AD20D31E64D7D30004D401 /* Metaltoy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Metaltoy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		83AD20D61E64D7D30004D401 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		83AD20D81E64D7D30004D401 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		83AD20D81E64D7D30004D401 /* EditorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorViewController.swift; sourceTree = "<group>"; };
 		83AD20DA1E64D7D30004D401 /* Document.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Document.swift; sourceTree = "<group>"; };
 		83AD20DC1E64D7D30004D401 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		83AD20DF1E64D7D30004D401 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		83AD20E11E64D7D30004D401 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		83AD20E71E64D9760004D401 /* RulerWithLineNumbers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RulerWithLineNumbers.swift; sourceTree = "<group>"; };
+		83AD20E91E64DBF10004D401 /* MetalGlobals.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MetalGlobals.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -35,6 +41,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		830671F91E6B4BD6007D54A2 /* Preview */ = {
+			isa = PBXGroup;
+			children = (
+				839CA1501E657BBF008EF073 /* PreviewViewController.swift */,
+			);
+			name = Preview;
+			sourceTree = "<group>";
+		};
 		83AD20CA1E64D7D30004D401 = {
 			isa = PBXGroup;
 			children = (
@@ -55,13 +69,24 @@
 			isa = PBXGroup;
 			children = (
 				83AD20D61E64D7D30004D401 /* AppDelegate.swift */,
-				83AD20D81E64D7D30004D401 /* ViewController.swift */,
+				83AD20E91E64DBF10004D401 /* MetalGlobals.swift */,
 				83AD20DA1E64D7D30004D401 /* Document.swift */,
+				83AD20EB1E64DC7D0004D401 /* Editor */,
+				830671F91E6B4BD6007D54A2 /* Preview */,
 				83AD20DC1E64D7D30004D401 /* Assets.xcassets */,
 				83AD20DE1E64D7D30004D401 /* Main.storyboard */,
 				83AD20E11E64D7D30004D401 /* Info.plist */,
 			);
 			path = Metaltoy;
+			sourceTree = "<group>";
+		};
+		83AD20EB1E64DC7D0004D401 /* Editor */ = {
+			isa = PBXGroup;
+			children = (
+				83AD20D81E64D7D30004D401 /* EditorViewController.swift */,
+				83AD20E71E64D9760004D401 /* RulerWithLineNumbers.swift */,
+			);
+			name = Editor;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -136,9 +161,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				83AD20D91E64D7D30004D401 /* ViewController.swift in Sources */,
+				83AD20D91E64D7D30004D401 /* EditorViewController.swift in Sources */,
 				83AD20D71E64D7D30004D401 /* AppDelegate.swift in Sources */,
 				83AD20DB1E64D7D30004D401 /* Document.swift in Sources */,
+				83AD20E81E64D9760004D401 /* RulerWithLineNumbers.swift in Sources */,
+				83AD20EA1E64DBF10004D401 /* MetalGlobals.swift in Sources */,
+				839CA1511E657BBF008EF073 /* PreviewViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -250,6 +278,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = 8JFK58KR9V;
 				INFOPLIST_FILE = Metaltoy/Info.plist;
@@ -264,6 +293,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = 8JFK58KR9V;
 				INFOPLIST_FILE = Metaltoy/Info.plist;
@@ -293,6 +323,7 @@
 				83AD20E61E64D7D30004D401 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

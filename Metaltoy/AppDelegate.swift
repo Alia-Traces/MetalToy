@@ -21,6 +21,29 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 		// Insert code here to tear down your application
 	}
 
+	@IBAction func compileActiveShader(_ sender: Any) {
+		guard let vc = getEditorVC() else { return }
+		vc.compileShader(sender)
+	}
 
+	@IBAction func showPreviewWindow(_ sender: Any) {
+		guard let vc = getEditorVC() else { return }
+		vc.showPreview()
+	}
+	
+	fileprivate func getEditorVC() -> EditorViewController? {
+		guard let window = NSApplication.shared().keyWindow else {
+			return nil
+		}
+		if let vc = window.contentViewController as? EditorViewController {
+			return vc
+		}
+		return nil
+		
+	}
+	
+	func applicationShouldOpenUntitledFile(_ sender: NSApplication) -> Bool {
+		return false
+	}
 }
 
