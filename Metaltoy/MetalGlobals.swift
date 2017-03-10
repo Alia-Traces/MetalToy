@@ -9,4 +9,5 @@
 import Foundation
 import MetalKit
 
-let mtlDev = MTLCreateSystemDefaultDevice()!
+// The GPU device is used everywhere so just make it a global...
+let mtlDev = MTLCreateSystemDefaultDevice()

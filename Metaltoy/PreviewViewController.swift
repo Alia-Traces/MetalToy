@@ -6,6 +6,7 @@
 //  Copyright © 2017 Interealtime. All rights reserved.
 //
 
+/// A square with vertices and text coords
 struct Quad {
 	let vertices = [
 		float4(-1.0,  -1.0, 0.0, 1.0),
@@ -35,35 +36,21 @@ class PreviewViewController: NSViewController {
 	@IBOutlet weak var fpsLabel: NSTextField!
 	@IBOutlet weak var msLabel: NSTextField!
 	
+	/// Updates the shader value, and updates the display if rendering is paused
+	///
+	/// - Parameter shader: A shader.
 	public func updateShader(_ shader: Shader) {
 		mtlViewDelegate.updateShader(shader)
 		if mtlView.isPaused { mtlView.draw() }
 	}
-	
-//	public var entrypoint: String? {
-//		get {
-//			return mtlViewDelegate.entryPoint
-//		}
-//		set {
-//			mtlViewDelegate.entryPoint = newValue
-//			
-//		}
-//	}
-//	
-//	public var library: MTLLibrary? {
-//		get {
-//			return mtlViewDelegate.library
-//		}
-//		set {
-//			mtlViewDelegate.library = newValue
-//		}
-//	}
 	
 	override func viewDidLoad() {
 		super.viewDidLoad()
 		mtlView = MTKView(frame: previewView.frame, device: mtlDev)
 		mtlView.framebufferOnly = false
 		mtlView.translatesAutoresizingMaskIntoConstraints = false
+		
+		// Configure the delegate
 		mtlViewDelegate = MetalViewDelegate()
 		mtlViewDelegate.fpsLabel = fpsLabel
 		mtlViewDelegate.msLabel = msLabel
@@ -85,7 +72,7 @@ class PreviewViewController: NSViewController {
 	}
 	
 	override func viewDidLayout() {
-		
+		// Update the rendering size label
 		let w = Int(mtlView.drawableSize.width), h = Int(mtlView.drawableSize.height)
 		resLabel.stringValue = "\(w) x \(h)"
 		if mtlView.isPaused { mtlView.draw() }
@@ -94,6 +81,7 @@ class PreviewViewController: NSViewController {
 	@IBAction func playPause(_ sender: NSButton) {
 		mtlView.isPaused = sender.state == NSOffState
 	}
+	
 	@IBAction func resetTime(_ sender: Any) {
 		mtlViewDelegate.resetTime()
 	}
@@ -104,17 +92,17 @@ class MetalViewDelegate: NSObject, MTKViewDelegate {
 	
 	private var shader: Shader?
 	
-	var queue: MTLCommandQueue
+	var queue: MTLCommandQueue?
 	var computePS: MTLComputePipelineState?
 	var fragmentPS: MTLRenderPipelineState?
-	var vertPosBuffer: MTLBuffer
-	var vertCoordBuffer: MTLBuffer
-	var timeBuffer: MTLBuffer
-	var resBuffer: MTLBuffer
+	var vertPosBuffer: MTLBuffer?
+	var vertCoordBuffer: MTLBuffer?
+	var timeBuffer: MTLBuffer?
+	var resBuffer: MTLBuffer?
 	var initialResSet = false
 	var startTime: Date
 	
-	var frameDurations: [Double] = Array.init(repeating: 0.0, count: 10)
+	var frameDurations: [Double] = Array.init(repeating: 0.0, count: 10) // Take the average of the last 10 frames
 	var fpsUpdateCount = 0
 	var fpsCounterStartTime: Date
 	
@@ -125,17 +113,23 @@ class MetalViewDelegate: NSObject, MTKViewDelegate {
 	weak var msLabel: NSTextField!
 	
 	override public init() {
+		if let dev = mtlDev {
+			
+			queue = dev.makeCommandQueue()
+			
+			// Set up the buffers to contain time and resolution
+			timeBuffer = dev.makeBuffer(length: MemoryLayout<Float>.size, options: [])
+			resBuffer = dev.makeBuffer(length: MemoryLayout<float2>.size, options: [])
+			
+			// A quad to render on
+			let quad = Quad()
+			
+			// Set up the vertex position + coord buffers
+			vertPosBuffer = dev.makeBuffer(bytes: quad.vertices, length: MemoryLayout<float4>.size * quad.vertices.count, options: MTLResourceOptions())
+			vertCoordBuffer = dev.makeBuffer(bytes: quad.texCoords, length: MemoryLayout<float4>.size * quad.texCoords.count, options: MTLResourceOptions())
+		}
 		
-		queue = mtlDev.makeCommandQueue()
-		
-		timeBuffer = mtlDev.makeBuffer(length: MemoryLayout<Float>.size, options: [])
-		resBuffer = mtlDev.makeBuffer(length: MemoryLayout<float2>.size, options: [])
-		
-		let quad = Quad()
-		
-		vertPosBuffer = mtlDev.makeBuffer(bytes: quad.vertices, length: MemoryLayout<float4>.size * quad.vertices.count, options: MTLResourceOptions())
-		vertCoordBuffer = mtlDev.makeBuffer(bytes: quad.texCoords, length: MemoryLayout<float4>.size * quad.texCoords.count, options: MTLResourceOptions())
-		
+		// Initialise time to now
 		startTime = Date()
 		fpsCounterStartTime = Date()
 		
@@ -146,7 +140,7 @@ class MetalViewDelegate: NSObject, MTKViewDelegate {
 	func updateShader(_ newShader: Shader) {
 		self.shader = newShader
 		
-		guard let library = shader!.library else {
+		guard let dev = mtlDev, let library = shader!.library else {
 			return
 		}
 		
@@ -154,7 +148,7 @@ class MetalViewDelegate: NSObject, MTKViewDelegate {
 		case .Compute:
 			do {
 				guard let mainKernel = library.makeFunction(name: shader!.activeComputeFunction) else { return }
-				computePS = try mtlDev.makeComputePipelineState(function: mainKernel)
+				computePS = try dev.makeComputePipelineState(function: mainKernel)
 				
 			} catch let error {
 				Swift.print(error.localizedDescription)
@@ -168,14 +162,14 @@ class MetalViewDelegate: NSObject, MTKViewDelegate {
 			}
 			let pipelineDescriptor = MTLRenderPipelineDescriptor()
 			pipelineDescriptor.vertexFunction = vert
-			//		pipelineDescriptor.fragmentFunction = fragLUTFunc
 			pipelineDescriptor.fragmentFunction = frag
 			pipelineDescriptor.colorAttachments[0].pixelFormat = MTLPixelFormat.bgra8Unorm
 			pipelineDescriptor.colorAttachments[0].isBlendingEnabled = false
 			
 			do{
-				fragmentPS = try mtlDev.makeRenderPipelineState(descriptor: pipelineDescriptor)
+				fragmentPS = try dev.makeRenderPipelineState(descriptor: pipelineDescriptor)
 			} catch let err {
+				// TODO: Handle this better, and somehow get the warning on screen
 				Swift.print("Something wrong with pipeline descriptor")
 				Swift.print("Error: \(err.localizedDescription)")
 				return
@@ -185,9 +179,11 @@ class MetalViewDelegate: NSObject, MTKViewDelegate {
 	
 	/// Updates the time buffer with the current time
 	func updateTime() {
+		guard let buffer = self.timeBuffer else { return }
+		
 		var t = Float(Date().timeIntervalSince(startTime) as Double)
 		
-		let bufferPointer = timeBuffer.contents()
+		let bufferPointer = buffer.contents()
 		memcpy(bufferPointer, &t, MemoryLayout<Float>.size)
 	}
 	
@@ -200,9 +196,11 @@ class MetalViewDelegate: NSObject, MTKViewDelegate {
 	}
 	
 	private func updateRes(_ size: CGSize) {
+		guard let buffer = resBuffer else { return }
+		
 		var res = float2(Float(size.width), Float(size.height))
 		
-		let bufferPointer = resBuffer.contents()
+		let bufferPointer = buffer.contents()
 		memcpy(bufferPointer, &res, MemoryLayout<float2>.size)
 	}
 	
@@ -217,7 +215,7 @@ class MetalViewDelegate: NSObject, MTKViewDelegate {
 		
 		switch  shader.type {
 		case .Compute:
-			guard let pipe = computePS else { return }
+			guard let pipe = computePS, let queue = self.queue else { return }
 			
 			let commandBuffer = queue.makeCommandBuffer()
 			let commandEncoder = commandBuffer.makeComputeCommandEncoder()
@@ -225,6 +223,7 @@ class MetalViewDelegate: NSObject, MTKViewDelegate {
 			commandEncoder.setTexture(drawable.texture, at: 0)
 			commandEncoder.setBuffer(timeBuffer, offset: 0, at: 0)
 			
+			// TODO: Handle non-factor-of-8 sizes
 			let threadGroupCount = MTLSizeMake(8, 8, 1)
 			let threadGroups = MTLSizeMake(drawable.texture.width / threadGroupCount.width, drawable.texture.height / threadGroupCount.height, 1)
 			commandEncoder.dispatchThreadgroups(threadGroups, threadsPerThreadgroup: threadGroupCount)
@@ -233,7 +232,7 @@ class MetalViewDelegate: NSObject, MTKViewDelegate {
 			commandBuffer.commit()
 			
 		case .Fragment:
-			guard let pipe = fragmentPS else { return }
+			guard let pipe = fragmentPS, let queue = self.queue else { return }
 			
 			view.currentRenderPassDescriptor!.colorAttachments[0].clearColor = MTLClearColor.init(red: 0.0, green: 0.0, blue: 0.0, alpha: 0.0)
 			view.currentRenderPassDescriptor!.colorAttachments[0].texture = drawable.texture
@@ -242,7 +241,6 @@ class MetalViewDelegate: NSObject, MTKViewDelegate {
 
 			// get command queue, buffer, encoder
 			let cmdBuffer = queue.makeCommandBuffer()
-			cmdBuffer.label = "FilteredView / drawRect"
 			let cmdEncoder = cmdBuffer.makeRenderCommandEncoder(descriptor: view.currentRenderPassDescriptor!)
 
 			// encode the render
@@ -253,7 +251,7 @@ class MetalViewDelegate: NSObject, MTKViewDelegate {
 			cmdEncoder.setFragmentBuffer(timeBuffer, offset: 0, at: 0)
 			cmdEncoder.setFragmentBuffer(resBuffer, offset: 0, at: 1)
 			
-
+			// TODO: Texture support
 // set the texture
 //cmd.encoder.setFragmentTexture(texture!.tex, at: 0)
 //cmd.encoder.setFragmentSamplerState(samplerState, at: 0)
